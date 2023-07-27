@@ -19,12 +19,13 @@ participation computation, see [example `FA2` in the test directory](./test/boot
 
 ## Usage
 
-This repository requires the following software to be installed:
-- Docker `24.0.5` or later
-- Node `v18.17.0` or later
+This repository requires Docker `24.0.5 or later` to be installed.
 
 1. Run `make install` to install dependencies
 2. Run `make` to see available commands
+
+If you do not wish to user Docker, you can modify the `LIGO` variable in the `Makefile` to point to a local LIGO binary.
+You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/-/releases/0.70.1).
 
 ## Docs
 
@@ -49,5 +50,15 @@ This repository requires the following software to be installed:
 - <https://medium.com/block-science/aligning-the-concept-of-decentralized-autonomous-organization-to-precedents-in-cybernetics-51344d1c1411>
 - <https://sarahlu.notion.site/sarahlu/just-another-web3-reading-list-f917a3b6a81e4a9a8f947a236c0e141a>
 
-# WARNINGS :
-- Per default, we use the TokenID = 0 when using a F2 Single Asset. This should be modular as a parameter in the future.
+## Next Steps
+- Members of the D.A.O. should have a valid D.I.D. (maybe through [TzProfiles](https://tzprofiles.com/))
+    - [ ] Add a Whitelist to the contract to validate users and their D.I.D.
+    - [ ] Non-members can request access to the D.A.O. by attaching their TzProfile as a parameter
+    - [ ] Members can validate the D.I.D. of requests
+- Per default, we use the `TokenID = 0` when using a F2 Single Asset.
+    - [ ] This should be modular as a parameter in the future.
+- Implement a `Weight` in the D.A.O. voting as such : 
+    - `Weight = x * y * z`
+    - [ ] `x` : number of tokens locked (higher is better)
+    - [ ] `y` : time tokens were locked (higher is better)
+    - [ ] `z` : voting activity (higher is better)

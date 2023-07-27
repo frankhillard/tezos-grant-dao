@@ -1,24 +1,5 @@
 {
-    "name": "tezos-grant-dao",
-    "private": true,
-    "version": "0.0.1",
-    "description": "Tezos D.A.O. with Decentralized Identity system and Anti-Whale measures",
-    "scripts": {
-        "lint": "eslint . --ext .ts"
-    },
-    "keywords": [],
-    "author": "Charaf ZELLOU <charaf.zellou@gmail.com>",
-    "license": "LGPL-3.0-or-later",
     "dependencies": {
-        "@taquito/signer": "^17.1.1",
-        "@taquito/taquito": "^17.1.1",
-        "@typescript-eslint/eslint-plugin": "^6.2.0",
-        "@typescript-eslint/parser": "^6.2.0",
-        "dotenv": "^16.3.1",
-        "eslint-config-prettier": "^8.9.0",
-        "eslint-plugin-prettier": "^5.0.0",
-        "eslint": "^8.45.0",
-        "ts-node": "^10.9.1",
-        "typescript": "^5.1.6"
+        "@ligo/fa": "^1.0.5"
     }
 }

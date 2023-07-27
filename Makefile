@@ -1,16 +1,16 @@
 SHELL := /bin/bash
 
-ifndef LIGO
-LIGO=docker run --platform linux/amd64 --rm -v "$(PWD)":"$(PWD)" -w "$(PWD)" ligolang/ligo:0.70.1
-endif
-# ^ use LIGO en var bin if configured, otherwise use docker
-
-project_root=--project-root .
-# ^ required when using packages
-
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+ifndef LIGO
+LIGO=docker run --platform linux/amd64 --rm -v "$(PWD)":"$(PWD)" -w "$(PWD)" ligolang/ligo:0.70.1
+endif
+# ^ use LIGO en var bin if configured, otherwise use Docker
+
+project_root=--project-root .
+# ^ required when using packages
 
 compile = $(LIGO) compile contract $(project_root) ./src/$(1) -o ./compiled/$(2) $(3)
 # ^ compile contract to michelson or micheline
@@ -25,23 +25,16 @@ compile: ## compile contracts
 	@$(call compile,main.mligo,dao.json,--michelson-format json)
 
 clean: ## clean up
-	@rm -rf compiled
-
-deploy: ## deploy
-	@if [ ! -f ./scripts/metadata.json ]; then cp scripts/metadata.json.dist \
-        scripts/metadata.json ; fi
-	@npx ts-node ./scripts/deploy.ts
+	@rm -rf compiled/*
 
 install: ## install dependencies
 	@if [ ! -f ./.env ]; then cp .env.dist .env ; fi
 	@$(LIGO) install
-	@corepack enable
-	@yarn
 
 compile-lambda: ## compile a lambda (F=./lambdas/empty_operation_list.mligo make compile-lambda)
 # ^ helper to compile lambda from a file, used during development of lambdas
 ifndef F
-	@echo 'please provide an init file (F=)'
+	@echo 'Please provide an init file (F=)'
 else
 	@$(LIGO) compile expression $(project_root) cameligo lambda_ --init-file $(F)
 	# ^ the lambda is expected to be bound to the name 'lambda_'
@@ -50,7 +43,7 @@ endif
 pack-lambda: ## pack lambda expression (F=./lambdas/empty_operation_list.mligo make pack-lambda)
 # ^ helper to get packed lambda and hash
 ifndef F
-	@echo 'please provide an init file (F=)'
+	@echo 'Please provide an init file (F=)'
 else
 	@echo 'Packed:'
 	@$(LIGO) run interpret $(project_root) 'Bytes.pack(lambda_)' --init-file $(F)
@@ -71,9 +64,3 @@ ifndef SUITE
 else
 	@$(call test,$(SUITE).test.mligo)
 endif
-
-sandbox-start: ## start sandbox
-	@./scripts/run-sandbox
-
-sandbox-stop: ## stop sandbox
-	@docker stop tezos-sandbox
