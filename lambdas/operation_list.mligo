@@ -17,11 +17,12 @@ let lambda_ : Lambda.operation_list =
           ([({from_ =
                 ("KT1BWSmjEhEknnBWSYrrSdhH217osBbwdVos"
                  : address);
-              tx =
+              txs =
                 ([{to_ =
                      ("tz1burnburnburnburnburnburnburjAYjjX"
                       : address);
-                   amount = 4000n}]
+                    token_id = 0n;
+                    amount = 4000n}]
                  : SingleAsset.atomic_trans list)})]
            : SingleAsset.transfer) in
         let op =

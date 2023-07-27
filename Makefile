@@ -37,7 +37,7 @@ ifndef F
 	@echo 'Please provide an init file (F=)'
 else
 	@$(LIGO) compile expression $(project_root) cameligo lambda_ --init-file $(F)
-	# ^ the lambda is expected to be bound to the name 'lambda_'
+## ^ the lambda is expected to be bound to the name 'lambda_'
 endif
 
 pack-lambda: ## pack lambda expression (F=./lambdas/empty_operation_list.mligo make pack-lambda)
