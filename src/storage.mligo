@@ -22,22 +22,19 @@ type t =
         next_outcome_id: nat;
     }
 
-let create_proposal (p, s : Proposal.t * t) : t =
-    { s with proposal = Some(p) }
-
 let update_config (f, s : Lambda.parameter_change * t) : t =
     { s with config = f() }
 
 let update_vault (v, s : Vault.t * t) : t =
     { s with vault = v }
 
+let create_proposal (p, s : Proposal.t * t) : t =
+    { s with proposal = Some(p) }
+
 let update_votes (p, v, s : Proposal.t * Vote.t * t) : t =
     let new_votes = Map.update (Tezos.get_sender()) (Some(v)) p.votes in
     let new_proposal = { p with votes = new_votes } in
     { s with proposal = Some(new_proposal) }
-
-let update_outcome (k, o, s : nat * Outcome.t * t) : t =
-    { s with outcomes = Big_map.update k (Some(o)) s.outcomes}
 
 let add_outcome (o, s : Outcome.t * t) : t =
     let (proposal, status) = o in
@@ -55,3 +52,6 @@ let add_outcome (o, s : Outcome.t * t) : t =
         outcomes = Big_map.update s.next_outcome_id (Some(proposal, status)) s.outcomes;
         next_outcome_id = s.next_outcome_id + 1n
     }
+
+let update_outcome (k, o, s : nat * Outcome.t * t) : t =
+    { s with outcomes = Big_map.update k (Some(o)) s.outcomes}

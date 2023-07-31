@@ -1,59 +1,25 @@
 #import "./constants.mligo" "Constants"
 #import "./errors.mligo" "Errors"
-#import "./lambda.mligo" "Lambda"
-#import "./outcome.mligo" "Outcome"
-#import "./proposal.mligo" "Proposal"
 #import "./storage.mligo" "Storage"
-#import "./vote.mligo" "Vote"
 #import "./token.mligo" "Token"
 #import "./vault.mligo" "Vault"
 #import "./timelock.mligo" "Timelock"
+#import "./proposal.mligo" "Proposal"
+#import "./vote.mligo" "Vote"
+#import "./outcome.mligo" "Outcome"
+#import "./lambda.mligo" "Lambda"
 
 type parameter =
     Propose of Proposal.make_params
-    | Cancel of nat option
     | Lock of Vault.amount_
     | Release of Vault.amount_
-    | Execute of Outcome.execute_params
     | Vote of Vote.choice
     | End_vote
+    | Cancel of nat option
+    | Execute of Outcome.execute_params
 
 type storage = Storage.t
 type result = operation list * storage
-
-(**
-    [execute(outcome_key, packed, s)] executes [packed] lambda and returns an operation list
-    and the updated storage [s]. A lambda can either create an operation list or update the config.
-    Raises: [Errors.outcome_not_found] if [outcome_key] does not occur in [Storage.outcomes].
-    Raises: [Errors.canceled|Errors.already_executed|Errors.not_executable] if
-    the outcome state is not equal to [Accepted].
-    Raises: [Errors.timelock_not_found|Errors.timelock_locked] if a timelock
-    does not exists or is locked.
-    Raises [Errors.lambda_not_found|Errors.lambda_wrong_packed_data] if the lambda does not exists,
-    or is not matching the stored hash.
-    Raises [Errors.wrong_lambda_kind] if the unpacking of the lambda fails.
-*)
-let execute (outcome_key, packed, s: nat * bytes * storage) : result =
-    let proposal = (match Big_map.find_opt outcome_key s.outcomes with
-        None -> failwith Errors.outcome_not_found
-        | Some(o) -> Outcome.get_proposal(o)) in
-
-    let () = Timelock._check_unlocked(proposal.timelock) in
-    let lambda_ = Lambda.validate(proposal.lambda, packed) in
-
-    match lambda_.1 with
-        OperationList -> (match (Bytes.unpack packed : Lambda.operation_list option) with
-            Some(f) -> f(), Storage.update_outcome(outcome_key, (proposal, Executed), s)
-            | None -> failwith Errors.wrong_lambda_kind)
-        | ParameterChange -> (match (Bytes.unpack packed : Lambda.parameter_change option) with
-            Some(f) ->
-                Constants.no_operation,
-                Storage.update_outcome(
-                    outcome_key,
-                    (proposal, Executed),
-                    Storage.update_config(f,s)
-                )
-            | None -> failwith Errors.wrong_lambda_kind)
 
 (**
     [propose(p, s)] creates a proposal from create parameters [p], then transfers configured
@@ -73,47 +39,6 @@ let propose (p, s : Proposal.make_params * storage) : result =
         )], Storage.create_proposal(
             Proposal.make(p, s.config.start_delay, s.config.voting_period),
             s)
-
-(**
-    [cancel (outcome_key_opt, s)] creates an operation of transfer of the deposited amount to the
-    configured burn_address, and updates storage [s] with either an outcome creation of current
-    proposal with its state canceled, or an update of the matched outcome at [outcome_key_opt]
-    with its state Canceled.
-    Raises [Errors.nothing_to_cancel] if [outcome_key_opt] is None and there is no current proposal.
-    Raises [Errors.voting_period] if there is a current proposal and the current block minimal
-    injection time belongs to the proposal voting period.
-    Raises [Errors.not_creator] is the sender is not the proposal creator.
-    Raises [Errors.outcome_not_found] if [outcome_key_opt] is not None, but it does not exists.
-    Raises [Errors.already_executed] if the proposal have already been executed.
-    Raises [Errors.timelock_not_found] if the outcome timelock does not exists.
-    Raises [Errors.timelock_unlocked] if the outcome timelock is unlocked, a proposal outcome cannot be
-    canceled if it is unlocked.
-*)
-let cancel (outcome_key_opt, s : nat option * storage) : result =
-   [Token.transfer(
-        s.governance_token,
-        Tezos.get_self_address(),
-        s.config.burn_address,
-        s.config.deposit_amount)
-   ], (match outcome_key_opt with
-        None -> (match s.proposal with
-            None -> failwith Errors.nothing_to_cancel
-            | Some(p) -> let () = Proposal._check_not_voting_period(p) in
-                let _check_sender_is_creator = assert_with_error
-                    (p.creator = Tezos.get_sender())
-                    Errors.not_creator in
-                Storage.add_outcome((p, Canceled), s))
-        | Some(outcome_key) -> (match Big_map.find_opt outcome_key s.outcomes with
-            None -> failwith Errors.outcome_not_found
-            | Some(o) -> let (p, state) = o in
-            let _check_sender_is_creator = assert_with_error
-                (p.creator = Tezos.get_sender())
-                Errors.not_creator in
-            let _check_not_executed = assert_with_error
-                (state <> Executed)
-                Errors.already_executed in
-            let () = Timelock._check_locked(p.timelock) in
-            Storage.update_outcome(outcome_key, (p, Canceled), s)))
 
 (**
     [lock(amount_)] creates an operation for token transfer between the owner and the DAO contract with [amount_],
@@ -199,6 +124,81 @@ let end_vote (s : storage) : result =
                 transfer_to_addr,
                 s.config.deposit_amount)]
             ), Storage.add_outcome(outcome, s)
+
+(**
+    [cancel (outcome_key_opt, s)] creates an operation of transfer of the deposited amount to the
+    configured burn_address, and updates storage [s] with either an outcome creation of current
+    proposal with its state canceled, or an update of the matched outcome at [outcome_key_opt]
+    with its state Canceled.
+    Raises [Errors.nothing_to_cancel] if [outcome_key_opt] is None and there is no current proposal.
+    Raises [Errors.voting_period] if there is a current proposal and the current block minimal
+    injection time belongs to the proposal voting period.
+    Raises [Errors.not_creator] is the sender is not the proposal creator.
+    Raises [Errors.outcome_not_found] if [outcome_key_opt] is not None, but it does not exists.
+    Raises [Errors.already_executed] if the proposal have already been executed.
+    Raises [Errors.timelock_not_found] if the outcome timelock does not exists.
+    Raises [Errors.timelock_unlocked] if the outcome timelock is unlocked, a proposal outcome cannot be
+    canceled if it is unlocked.
+*)
+let cancel (outcome_key_opt, s : nat option * storage) : result =
+   [Token.transfer(
+        s.governance_token,
+        Tezos.get_self_address(),
+        s.config.burn_address,
+        s.config.deposit_amount)
+   ], (match outcome_key_opt with
+        None -> (match s.proposal with
+            None -> failwith Errors.nothing_to_cancel
+            | Some(p) -> let () = Proposal._check_not_voting_period(p) in
+                let _check_sender_is_creator = assert_with_error
+                    (p.creator = Tezos.get_sender())
+                    Errors.not_creator in
+                Storage.add_outcome((p, Canceled), s))
+        | Some(outcome_key) -> (match Big_map.find_opt outcome_key s.outcomes with
+            None -> failwith Errors.outcome_not_found
+            | Some(o) -> let (p, state) = o in
+            let _check_sender_is_creator = assert_with_error
+                (p.creator = Tezos.get_sender())
+                Errors.not_creator in
+            let _check_not_executed = assert_with_error
+                (state <> Executed)
+                Errors.already_executed in
+            let () = Timelock._check_locked(p.timelock) in
+            Storage.update_outcome(outcome_key, (p, Canceled), s)))
+
+(**
+    [execute(outcome_key, packed, s)] executes [packed] lambda and returns an operation list
+    and the updated storage [s]. A lambda can either create an operation list or update the config.
+    Raises: [Errors.outcome_not_found] if [outcome_key] does not occur in [Storage.outcomes].
+    Raises: [Errors.canceled|Errors.already_executed|Errors.not_executable] if
+    the outcome state is not equal to [Accepted].
+    Raises: [Errors.timelock_not_found|Errors.timelock_locked] if a timelock
+    does not exists or is locked.
+    Raises [Errors.lambda_not_found|Errors.lambda_wrong_packed_data] if the lambda does not exists,
+    or is not matching the stored hash.
+    Raises [Errors.wrong_lambda_kind] if the unpacking of the lambda fails.
+*)
+let execute (outcome_key, packed, s: nat * bytes * storage) : result =
+    let proposal = (match Big_map.find_opt outcome_key s.outcomes with
+        None -> failwith Errors.outcome_not_found
+        | Some(o) -> Outcome.get_proposal(o)) in
+
+    let () = Timelock._check_unlocked(proposal.timelock) in
+    let lambda_ = Lambda.validate(proposal.lambda, packed) in
+
+    match lambda_.1 with
+        OperationList -> (match (Bytes.unpack packed : Lambda.operation_list option) with
+            Some(f) -> f(), Storage.update_outcome(outcome_key, (proposal, Executed), s)
+            | None -> failwith Errors.wrong_lambda_kind)
+        | ParameterChange -> (match (Bytes.unpack packed : Lambda.parameter_change option) with
+            Some(f) ->
+                Constants.no_operation,
+                Storage.update_outcome(
+                    outcome_key,
+                    (proposal, Executed),
+                    Storage.update_config(f,s)
+                )
+            | None -> failwith Errors.wrong_lambda_kind)
 
 (**
     Raises [Errors.not_zero_amount] if tez amount is sent.
