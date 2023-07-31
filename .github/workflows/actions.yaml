@@ -17,11 +17,11 @@ jobs:
         run: make install
       - name: "Make compile"
         run: make compile
-      - name: "Make test"
-        run: make test
       - name: "Compile Lambda: empty_operation_list"
         run: F=./lambdas/empty_operation_list.mligo make compile-lambda
       - name: "Compile Lambda: operation_list"
         run: F=./lambdas/operation_list.mligo make compile-lambda
       - name: "Compile Lambda: parameter_change"
         run: F=./lambdas/parameter_change.mligo make compile-lambda
+      - name: "Make test"
+        run: make test
