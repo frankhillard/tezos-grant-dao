@@ -11,11 +11,18 @@ It is using token based quorum voting, requiring a given threshold of
 participating tokens for a proposal to pass.
 
 The contract code uses LIGO [modules](https://ligolang.org/docs/language-basics/modules/),
-and the [@ligo-fa2 package](https://packages.ligolang.org/package/@ligo/fa). Learn about LIGO packages [here](https://ligolang.org/docs/advanced/package-management).
+and the [@ligo-fa2 package](https://packages.ligolang.org/package/@ligo/fa).
+Learn about LIGO packages [here](https://ligolang.org/docs/advanced/package-management).
 
 The used `FA2` token is expected to extend the standard with an on-chain view
 `total_supply` returning the total supply of tokens, used as base for the
 participation computation, see [example `FA2` in the test directory](./test/bootstrap/single_asset.mligo).
+
+## Docs
+
+- [Specification](./docs/specification.md)
+- [Lambdas](./docs/lambdas.md)
+- [Tests](./docs/tests.md)
 
 ## Usage
 
@@ -24,14 +31,9 @@ This repository requires Docker `24.0.5 or later` to be installed.
 1. Run `make install` to install dependencies
 2. Run `make` to see available commands
 
-If you do not wish to user Docker, you can modify the `LIGO` variable in the `Makefile` to point to a local LIGO binary.
+If you do not wish to user Docker, you can modify the `LIGO` variable in the `Makefile`
+to point to a local LIGO binary.
 You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/-/releases/0.70.1).
-
-## Docs
-
-- [Specification](./docs/specification.md)
-- [Lambdas](./docs/lambdas.md)
-- [Tests](./docs/tests.md)
 
 ## Resources
 
@@ -51,14 +53,23 @@ You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/
 - <https://sarahlu.notion.site/sarahlu/just-another-web3-reading-list-f917a3b6a81e4a9a8f947a236c0e141a>
 
 ## Next Steps
-- Members of the D.A.O. should have a valid D.I.D. (maybe through [TzProfiles](https://tzprofiles.com/))
-    - [ ] Add a Whitelist to the contract to validate users and their D.I.D.
-    - [ ] Non-members can request access to the D.A.O. by attaching their TzProfile as a parameter
-    - [ ] Members can validate the D.I.D. of requests
-- Per default, we use the `TokenID = 0` when using a F2 Single Asset.
-    - [ ] This should be modular as a parameter in the future.
-- Implement a `Weight` in the D.A.O. voting as such : 
-    - `Weight = x * y * z`
-    - [ ] `x` : number of tokens locked (higher is better)
-    - [ ] `y` : time tokens were locked (higher is better)
-    - [ ] `z` : voting activity (higher is better)
+- Verifications and enchancements :
+    - Verify the Voting procedure.
+        - [ ] Is there only one proposal at once possible ?
+        - [ ] Why do we only specify the `bool`for `Vote.choice` and not a proposal too ?
+    - Verify the Voting Period + Timelock Period
+        - [ ] Is an overlap of these possible ?
+        - [ ] Are there measures to prevent Timelocking in reference to the Voting Period ?
+    - Per default, we use the `TokenID = 0` when using a F2 Single Asset.
+        - [ ] This should be modular as a parameter in the future.
+- Anti-Whale measures :
+    - Implement a `Weight` in the D.A.O. voting as such : 
+        - `Weight = x * y * z`
+            - [ ] `x` : number of tokens locked (higher is better)
+            - [ ] `y` : time since the tokens were locked (higher is better)
+            - [ ] `z` : voting activity (higher is better) (to be implemented)
+- D.I.D. Integration :
+    - Members of the D.A.O. should have a valid D.I.D. (maybe through [TzProfiles](https://tzprofiles.com/) ?)
+        - [ ] Add a Whitelist to the contract to validate users and their D.I.D.
+        - [ ] Non-members can request access to the D.A.O. by attaching their TzProfile as a parameter
+        - [ ] Members can validate the D.I.D. requests per user

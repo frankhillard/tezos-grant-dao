@@ -9,6 +9,10 @@ The contract is using locked tokens of the configured
 The potential incentives to lock tokens (outside of getting voting power) is
 uncovered.
 
+## Entrypoints
+
+![contract_entrypoints](./images/contract_entrypoints.png)
+
 ### Propose
 
 A token owner can *propose* a vote by supplying a ***description_link***,
