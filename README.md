@@ -63,8 +63,8 @@ You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/
     - Per default, we use the `TokenID = 0` when using a F2 Single Asset.
         - [ ] This should be modular as a parameter in the future.
 - Anti-Whale measures :
-    - Implement a `Weight` in the D.A.O. voting as such : 
-        - `Weight = x * y * z`
+    - Implement a `Voting Weight` in the D.A.O. voting as such : 
+        - `Voting Weight = x * y * z`
             - [ ] `x` : number of tokens locked (higher is better)
             - [ ] `y` : time since the tokens were locked (higher is better)
             - [ ] `z` : voting activity (higher is better) (to be implemented)

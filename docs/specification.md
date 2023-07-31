@@ -1,5 +1,9 @@
 # Specification
 
+## Entrypoints
+
+![contract_entrypoints](./images/contract_entrypoints.png)
+
 ## Workflow
 
 ![workflow](./images/workflow.png)
@@ -8,10 +12,6 @@ The contract is using locked tokens of the configured
 ***governance_token*** as voting power.  
 The potential incentives to lock tokens (outside of getting voting power) is
 uncovered.
-
-## Entrypoints
-
-![contract_entrypoints](./images/contract_entrypoints.png)
 
 ### Propose
 
@@ -48,6 +48,15 @@ during a configured ***voting_period***. Token owners can vote on the proposal,
 having their locked tokens being counted as voting power.
 
 ![vote](./images/flow_vote.png)
+
+The `Voting Weight` in the D.A.O. is used to limit the influence of Whales
+or synchronized groups on the voting processes. It is defined as follows : 
+- `Voting Weight = x * y * z`
+    - `x` being the number of tokens locked by the user,
+    - `y` being the time since the user tokens were locked,
+    - `z` being the user's voting activity, stored in a `map`.
+
+![voting_weight](./images/voting_weight.png)
 
 ### End_vote
 
