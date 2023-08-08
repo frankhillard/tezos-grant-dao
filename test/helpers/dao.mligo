@@ -29,8 +29,10 @@ let default_timelock = (None : DAO.Timelock.t option)
 
 let base_config : DAO.Storage.Config.t = {
     deposit_amount = 4n;
+    base_token_score = 1_000_000n;
+    base_reput_score = 10n;
+    base_fidel_score = 31_536_000n;
     refund_threshold = 32n;
-    quorum_threshold = 67n;
     super_majority = 80n;
     start_delay = 360n;
     voting_period = 1440n;
@@ -45,6 +47,7 @@ let base_storage : DAO.storage = {
         ("contents", ("": bytes))
     ];
     governance_token = dummy_governance_token;
+    user_score = (Big_map.empty : DAO.Storage.score);
     vault = (Big_map.empty : DAO.Storage.Vault.t);
     proposal = (None : DAO.Proposal.t option);
     config = base_config;

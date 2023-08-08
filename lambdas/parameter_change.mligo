@@ -9,13 +9,15 @@
 let lambda_ : Lambda.parameter_change =
   fun () ->
     {
-        deposit_amount = 400n;
+        deposit_amount = 4n;
+        base_token_score = 1_000_000n;
+        base_reput_score = 10n;
+        base_fidel_score = 31_536_000n;
         refund_threshold = 32n;
-        quorum_threshold = 67n;
         super_majority = 80n;
-        start_delay = 86400n;
-        voting_period = 604800n;
-        timelock_delay = 86400n;
-        timelock_period = 259200n;
-        burn_address = ("tz1burnburnburnburnburnburnburjAYjjX" : address);
+        start_delay = 360n;
+        voting_period = 1440n;
+        timelock_delay = 360n;
+        timelock_period = 720n;
+        burn_address = ("tz1burnburnburnburnburnburnburjAYjjX": address);
     }

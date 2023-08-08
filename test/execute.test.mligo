@@ -10,7 +10,7 @@
 let () = Log.describe("[Execute] test suite")
 
 (* Boostrapping of the test environment, *)
-let init_tok_amount = 33n
+let init_tok_amount = 100_000_000n
 let bootstrap (init_dao_storage : DAO.storage) =
     Bootstrap.boot(init_tok_amount, init_dao_storage)
 let base_config = DAO_helper.base_config
@@ -42,7 +42,7 @@ let test_success_parameter_changed =
     let (tok, dao, _sender_) = bootstrap(dao_storage) in
 
     let base_config = DAO_helper.base_config in
-    let packed = Bytes.pack (fun() -> { base_config with quorum_threshold = 51n }) in
+    let packed = Bytes.pack (fun() -> { base_config with super_majority = 82n }) in
     let lambda_ = Some((Crypto.sha256 packed, ParameterChange)) in
     let votes = [(0, 25n, true); (1, 25n, true); (2, 25n, true)] in
     let () = Suite_helper.create_and_vote_proposal(tok, dao, lambda_, votes) in
@@ -52,7 +52,7 @@ let test_success_parameter_changed =
     let dao_storage = Test.get_storage dao.taddr in
 
     (* Assert that the config has been updated *)
-    assert(dao_storage.config.quorum_threshold = 51n)
+    assert(dao_storage.config.super_majority = 82n)
 
 (* Successful execution of an operation list *)
 let test_success_operation_list =

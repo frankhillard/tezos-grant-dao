@@ -1,5 +1,5 @@
 (*
-    quorum_threshold, refund_threshold and super_majority
+    refund_threshold and super_majority
     are represented with scale = 2, ex. 80 = .80 = 80%
 
     x_delay and x_period are represented by time units in seconds
@@ -10,14 +10,20 @@ type t =
         deposit_amount: nat;
         (* ^ The amount of tokens required to be deposited when creating a proposal *)
 
-        refund_threshold: nat;
-        (* ^ The minimal amount of participating tokens required for the deposit to be refunded *)
+        base_token_score: nat;
+        (* ^ The base token score added to each user token score for voting *)
 
-        quorum_threshold: nat;
-        (* ^ The minimal participation percentage needed for a proposal to pass *)
+        base_reput_score: nat;
+        (* ^ The base reputation score added to each user reputation score for voting *)
+
+        base_fidel_score: nat;
+        (* ^ The base fidelity score added to each user fidel score for voting *)
+
+        refund_threshold: nat;
+        (* ^ The minimal participation percentage of "yes" votes weighting power required for the deposit to be refunded *)
 
         super_majority: nat;
-        (* ^ The percentage needed for a super majority ("yes" votes) *)
+        (* ^ The minimal participation percentage of "yes" votes weighting power required for a proposal to pass *)
 
         start_delay: nat;
         (* ^ The delay for the vote to start *)

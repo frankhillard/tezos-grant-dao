@@ -7,7 +7,7 @@
 let () = Log.describe("[Vote] test suite")
 
 (* Boostrapping of the test environment, *)
-let init_tok_amount = 10n
+let init_tok_amount = 100_000_000n
 let bootstrap (init_dao_storage : DAO.storage) =
     Bootstrap.boot(init_tok_amount, init_dao_storage)
 let base_config = DAO_helper.base_config

@@ -10,7 +10,7 @@
 let () = Log.describe("[Cancel] test suite")
 
 (* Boostrapping of the test environment, *)
-let init_tok_amount = 33n
+let init_tok_amount = 100_000_000n
 let bootstrap (init_dao_storage : DAO.storage) =
     Bootstrap.boot(init_tok_amount, init_dao_storage)
 let empty_nat_option = (None: nat option)
@@ -102,7 +102,7 @@ let test_failure_already_executed =
     let (tok, dao, _sender_) = bootstrap(dao_storage) in
 
     let lambda_ = Some(( DAO_helper.empty_op_list_hash, OperationList)) in
-    let votes = [(0, 25n, true); (1, 25n, true); (2, 25n, true)] in
+    let votes = [(0, 25_000_000n, true); (1, 25_000_000n, true); (2, 25_000_000n, true)] in
     let () = Suite_helper.create_and_vote_proposal(tok, dao, lambda_, votes) in
     let () = DAO_helper.execute_success(1n, 0x0502000000060320053d036d, dao.contr) in
 

@@ -8,7 +8,7 @@
 let () = Log.describe("[Lock] test suite")
 
 (* Boostrapping of the test environment, *)
-let init_tok_amount = 10n
+let init_tok_amount = 100_000_000n
 let bootstrap (init_dao_storage : DAO.storage) =
     Bootstrap.boot(init_tok_amount, init_dao_storage)
 let base_config = DAO_helper.base_config
@@ -51,7 +51,7 @@ let test_success_before_voting_starts =
 (* Failing lock because sender has insuffiscient balance *)
 let test_failure_ins_balance =
     let (_tok, dao, _sender_) = bootstrap(base_storage) in
-    let r = DAO_helper.lock(30n, dao.contr) in
+    let r = DAO_helper.lock(300_000_000n, dao.contr) in
     Token_helper.assert_ins_balance_failure(r)
 
 (* Failing lock because voting is underway *)

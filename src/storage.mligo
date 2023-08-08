@@ -10,11 +10,15 @@
 
 type outcomes = (nat, Outcome.t) big_map
 
+type scores = Vote.scores
+type score = (address, scores) big_map
+
 type t =
     [@layout:comb]
     {
         metadata: Metadata.t;
         governance_token: Token.t;
+        user_score: score;
         config: Config.t;
         vault: Vault.t;
         proposal: Proposal.t option;

@@ -49,12 +49,11 @@ having their locked tokens being counted as voting power.
 
 ![vote](./images/flow_vote.png)
 
-The `Voting Weight` in the D.A.O. is used to limit the influence of Whales
-or synchronized groups on the voting processes. It is defined as follows : 
-- `Voting Weight = x * y * z`
-    - `x` being the number of tokens locked by the user,
-    - `y` being the time since the user tokens were locked,
-    - `z` being the user's voting activity, stored in a `map`.
+## Anti-Whale System
+The D.A.O. uses an anti-whale voting system, working as follows :
+- Each user has a token score. For each vote, the base token score is initialised in the configuration at `s = 1 000 000`, and this value is added to the user locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
+- Each user has a reputation score. The base reputation score is initialised in the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, each user is rewarded one cumulative reputation point in a counter `y`, resulting in a final reputation score `Y = b + y`.
+- Each user has a fidelity score. The base fidelity score is initialised in the configuration at `t = 31 536 000` for smoothing purpose. At each lock, we note the timestamp, and calculate at each vote the total lock time `z` in seconds. Note that locking and releasing multiple times cumulate your lock time.  resulting in a final fidelity score `Z = t + z`.
 
 ![voting_weight](./images/voting_weight.png)
 

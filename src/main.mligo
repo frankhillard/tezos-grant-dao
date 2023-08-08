@@ -51,11 +51,23 @@ let lock (amount_, s : nat * storage) : result =
     let () = Proposal._check_no_vote_ongoing(s.proposal) in
     let current_amount = Vault.get_for_user(s.vault, Tezos.get_sender()) in
 
+    let updated_score = match Big_map.find_opt (Tezos.get_sender()) s.user_score with
+          None -> {reputation = 0n; fidelity=0n; last_date = Tezos.get_now ();}
+        | Some(p) ->
+            if current_amount = 0n then
+            {reputation = p.reputation; fidelity = p.fidelity; last_date = Tezos.get_now();}
+            else
+            {reputation = p.reputation;
+            fidelity = p.fidelity + abs(Tezos.get_now() - p.last_date);
+            last_date = Tezos.get_now();}
+    in
+    let updated_score_map = Big_map.update (Tezos.get_sender()) (Some updated_score) s.user_score in
+
     [Token.transfer(s.governance_token, Tezos.get_sender(), Tezos.get_self_address(), amount_)],
     Storage.update_vault(Vault.update_for_user(
         s.vault,
         Tezos.get_sender(),
-        current_amount + amount_), s)
+        current_amount + amount_), {s with user_score = updated_score_map})
 
 (**
     [release(amount_, s)] creates an operation for token transfer between the DAO and the owner with [amount_],
@@ -72,11 +84,23 @@ let release (amount_, s : nat * storage) : result =
         (current_amount >= amount_)
         Errors.not_enough_balance in
 
+    let updated_score = match Big_map.find_opt (Tezos.get_sender()) s.user_score with
+          None -> failwith Errors.score_do_not_exist
+        | Some(p) ->
+            if current_amount = 0n then
+            {reputation = p.reputation; fidelity = p.fidelity; last_date = Tezos.get_now();}
+            else
+            {reputation = p.reputation;
+            fidelity = p.fidelity + abs(Tezos.get_now() - p.last_date);
+            last_date = Tezos.get_now();}
+    in
+    let updated_score_map = Big_map.update (Tezos.get_sender()) (Some updated_score) s.user_score in
+
     [Token.transfer(s.governance_token, Tezos.get_self_address(), Tezos.get_sender(), amount_)],
     Storage.update_vault(Vault.update_for_user(
         s.vault,
         Tezos.get_sender(),
-        abs(current_amount - amount_)), s)
+        abs(current_amount - amount_)), {s with user_score = updated_score_map})
 
 (**
     [vote(choice, s)] updates current proposal with the sender [choice] along with its voting power, and
@@ -92,6 +116,20 @@ let vote (choice, s : bool * storage) : storage =
             let amount_ = Vault.get_for_user_exn(s.vault, Tezos.get_sender()) in
             Storage.update_votes(p, (choice, amount_), s)
 
+
+
+let update_score_end_vote (addr, usr_score : address * Storage.score) : Storage.score =
+
+    let score = match Big_map.find_opt addr usr_score with
+        None -> {reputation = 0n; fidelity=0n; last_date = Tezos.get_now ();}
+        | Some(p) -> {
+            reputation = 1n + p.reputation;
+            fidelity = abs(Tezos.get_now() - p.last_date) + p.fidelity;
+            last_date = Tezos.get_now ();}
+    in
+    Big_map.update addr (Some score) usr_score
+
+
 (**
     [end_vote(s)] creates an operation of transfer from the DAO to either the proposal creator, or the
     configured burn_address, and updates storage [s] with new outcome.
@@ -103,15 +141,26 @@ let end_vote (s : storage) : result =
     match s.proposal with
         None -> failwith Errors.no_proposal
         | Some(p) -> let () = Proposal._check_voting_period_ended(p) in
-            let total_supply = (match Token.get_total_supply(s.governance_token) with
-                None -> failwith Errors.fa2_total_supply_not_found
-                | Some n -> n) in
+
+            let folded =
+                fun (usr_score_acc, (addr, (_, _)) : Storage.score * (address * Vote.t)) ->
+                    let score = match Big_map.find_opt addr usr_score_acc with
+                        None -> {reputation = 0n; fidelity=0n; last_date = Tezos.get_now ();}
+                        | Some(p) -> {
+                        reputation = 1n + p.reputation;
+                        fidelity = abs(Tezos.get_now() - p.last_date) + p.fidelity;
+                        last_date = Tezos.get_now ();} in
+                    Big_map.update addr (Some score) usr_score_acc in
+            let updated_score_map = Map.fold folded p.votes s.user_score in
+
             let outcome = Outcome.make(
                     p,
-                    total_supply,
                     s.config.refund_threshold,
-                    s.config.quorum_threshold,
-                    s.config.super_majority
+                    s.config.super_majority,
+                    s.config.base_token_score,
+                    s.config.base_reput_score,
+                    s.config.base_fidel_score,
+                    s.user_score
                 ) in
             let (_, state) = outcome in
             let transfer_to_addr = match state with
@@ -123,7 +172,7 @@ let end_vote (s : storage) : result =
                 Tezos.get_self_address(),
                 transfer_to_addr,
                 s.config.deposit_amount)]
-            ), Storage.add_outcome(outcome, s)
+            ), Storage.add_outcome(outcome, {s with user_score = updated_score_map})
 
 (**
     [cancel (outcome_key_opt, s)] creates an operation of transfer of the deposited amount to the

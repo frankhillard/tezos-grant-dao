@@ -12,7 +12,7 @@ type t = (owner, amount_) big_map
 let get_for_user (vault, owner: t * owner) : amount_ =
     match Big_map.find_opt owner vault with
         Some (tokens) -> tokens
-        |  None          -> 0n
+        |  None       -> 0n
 
 (**
     [get_for_user_exn(vault, owner)] gets amount of locked tokens in the [vault] for [owner] address.

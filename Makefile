@@ -60,6 +60,7 @@ ifndef SUITE
 	@$(call test,lock.test.mligo)
 	@$(call test,propose.test.mligo)
 	@$(call test,release.test.mligo)
+	@$(call test,score.test.mligo)
 	@$(call test,vote.test.mligo)
 else
 	@$(call test,$(SUITE).test.mligo)

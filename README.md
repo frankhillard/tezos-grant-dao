@@ -51,25 +51,42 @@ You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/
 - <https://policyreview.info/glossary/permissionlessness>
 - <https://medium.com/block-science/aligning-the-concept-of-decentralized-autonomous-organization-to-precedents-in-cybernetics-51344d1c1411>
 - <https://sarahlu.notion.site/sarahlu/just-another-web3-reading-list-f917a3b6a81e4a9a8f947a236c0e141a>
+    
+## Anti-Whale System
+
+### Explanation
+
+The D.A.O. uses an anti-whale voting system, working as follows :
+- Each user has a token score. For each vote, the base token score is initialised in the configuration at `s = 1 000 000` for smoothing purpose, and this value is added to the user locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
+- Each user has a reputation score. The base reputation score is initialised in the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, each user is rewarded one cumulative reputation point in a counter `y`, resulting in a final reputation score `Y = b + y`.
+- Each user has a fidelity score. The base fidelity score is initialised in the configuration at `t = 31 536 000` for smoothing purpose. At each lock, we note the timestamp, and calculate at each vote the total lock time `z` in seconds. Note that locking and releasing multiple times cumulate your lock time.  resulting in a final fidelity score `Z = t + z`.
+
+The final voting weight power `V` for each user is `V = X * Y * Z`
+
+### Technical mecanism
+
+We have an (address, score) big_map in the storage:  
+
+score type = {  
+&nbsp; &nbsp; reputation: nat;  
+&nbsp; &nbsp; fidelity: nat;  
+&nbsp; &nbsp; last_updated_timestamp: timestamp;  
+}  
+
+1. When a user `lock` : if we had a `lock` in progress, we add the seconds between `last_updated_timestamp` and `now` to their `fidelity` score. If not and the user never locked any tokens, we create an entry in the `big_map` with `reputation` and `fidelity` at `0n`. In any cases, we overwrite the `last_updated_timestamp` to `now`.
+
+2. When there happen an `end_vote` : we iterate over the `map` of all the entries of those who voted and we add one point (`+1n`) reputation to the `reputation` score and we add the seconds between `last_updated_timestamp` and `now` to their `fidelity` score. We overwrite the `last_updated_timestamp` to `now`. {The vote is then casted with the updated weights}
+
+3. When a user `release`: we add the seconds between `last_updated_timestamp` and `now` to their `fidelity` score. We overwrite the `last_updated_timestamp` to `now`.
+
 
 ## Next Steps
-- Verifications and enchancements :
-    - Verify the Voting procedure.
-        - [ ] Is there only one proposal at once possible ?
-        - [ ] Why do we only specify the `bool`for `Vote.choice` and not a proposal too ?
-    - Verify the Voting Period + Timelock Period
-        - [ ] Is an overlap of these possible ?
-        - [ ] Are there measures to prevent Timelocking in reference to the Voting Period ?
-    - Per default, we use the `TokenID = 0` when using a F2 Single Asset.
-        - [ ] This should be modular as a parameter in the future.
-- Anti-Whale measures :
-    - Implement a `Voting Weight` in the D.A.O. voting as such : 
-        - `Voting Weight = x * y * z`
-            - [ ] `x` : number of tokens locked (higher is better)
-            - [ ] `y` : time since the tokens were locked (higher is better)
-            - [ ] `z` : voting activity (higher is better) (to be implemented)
+- Enchancements :
+    - [ ] Had a minimum start_delay
 - D.I.D. Integration :
     - Members of the D.A.O. should have a valid D.I.D. (maybe through [TzProfiles](https://tzprofiles.com/) ?)
         - [ ] Add a Whitelist to the contract to validate users and their D.I.D.
         - [ ] Non-members can request access to the D.A.O. by attaching their TzProfile as a parameter
         - [ ] Members can validate the D.I.D. requests per user
+
+
