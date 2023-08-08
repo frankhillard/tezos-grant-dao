@@ -1,0 +1,9 @@
+_esy/
+.DS_Store
+.env
+.ligo/
+*.log
+*.tz
+compiled/*
+node_modules
+scripts/metadata.json

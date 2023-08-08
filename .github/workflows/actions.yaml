@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+
+      - name: "Make install"
+        run: make install
+
+      - name: "Make compile"
+        run: make compile
+
+      - name: "Run LIGO tests: Whitelist"
+        run: SUITE=whitelist make test
+      - name: "Run LIGO tests: Propose"
+        run: SUITE=propose make test
+      - name: "Run LIGO tests: Lock"
+        run: SUITE=lock make test
+      - name: "Run LIGO tests: Release"
+        run: SUITE=release make test
+      - name: "Run LIGO tests: Vote"
+        run: SUITE=vote make test
+      - name: "Run LIGO tests: Score"
+        run: SUITE=score make test
+      - name: "Run LIGO tests: EndVote"
+        run: SUITE=end_vote make test
+      - name: "Run LIGO tests: Cancel"
+        run: SUITE=cancel make test
+      - name: "Run LIGO tests: Execute"
+        run: SUITE=execute make test
+
+      - name: "Compile Lambda: empty_operation_list"
+        run: F=./lambdas/empty_operation_list.mligo make compile-lambda
+      - name: "Compile Lambda: operation_list"
+        run: F=./lambdas/operation_list.mligo make compile-lambda
+      - name: "Compile Lambda: parameter_change"
+        run: F=./lambdas/parameter_change.mligo make compile-lambda
+
+      - name: "Pack Lambda: empty_operation_list"
+        run: F=./lambdas/empty_operation_list.mligo make pack-lambda
+      - name: "Pack Lambda: operation_list"
+        run: F=./lambdas/operation_list.mligo make pack-lambda
+      - name: "Pack Lambda: parameter_change"
+        run: F=./lambdas/parameter_change.mligo make pack-lambda
