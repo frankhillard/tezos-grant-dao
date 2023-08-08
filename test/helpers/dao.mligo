@@ -42,17 +42,21 @@ let base_config : DAO.Storage.Config.t = {
 }
 
 let base_storage : DAO.storage = {
-    metadata = Big_map.literal [
-        ("", Bytes.pack("tezos-storage:contents"));
-        ("contents", ("": bytes))
-    ];
     governance_token = dummy_governance_token;
+    requests = (Map.empty : DAO.Whitelist.requests);
+    members = (Map.literal [
+        ((Tezos.get_sender()), "");
+    ]);
     user_score = (Big_map.empty : DAO.Storage.score);
     vault = (Big_map.empty : DAO.Storage.Vault.t);
     proposal = (None : DAO.Proposal.t option);
     config = base_config;
     next_outcome_id = 1n;
     outcomes = (Big_map.empty : DAO.Storage.outcomes);
+    metadata = Big_map.literal [
+        ("", Bytes.pack("tezos-storage:contents"));
+        ("contents", ("": bytes))
+    ];
 }
 
 (* Originate a DAO contract with given init_storage storage *)
@@ -67,37 +71,36 @@ let call (p, contr : DAO.parameter * contr) =
     Test.transfer_to_contract contr p 0mutez
 
 (* Entry points call helpers *)
-let cancel (outcome_key_opt, contr : nat option * contr) = call(Cancel(outcome_key_opt), contr)
+let submit_access_request (tezprofile, contr : DAO.Whitelist.tezprofile * contr) = call(SubmitAccessRequest(tezprofile), contr)
 
-let end_vote (contr : contr) = call(End_vote, contr)
+let accept_access_request (applicant, contr : address * contr) = call(AcceptAccessRequest(applicant), contr)
 
-let execute (k, packed, contr : nat * bytes * contr) =
-    call(Execute({ outcome_key = k; packed = packed; }), contr)
+let propose (proposal, contr : DAO.Proposal.make_params * contr) = call(Propose(proposal), contr)
 
 let lock (amount_, contr: nat * contr) = call(Lock(amount_), contr)
-
-let propose (proposal, contr : DAO.Proposal.make_params * contr) =
-    call(Propose(proposal), contr)
 
 let release (amount_, contr: nat * contr) = call(Release(amount_), contr)
 
 let vote (choice, contr: bool * contr) = call(Vote(choice), contr)
 
+let end_vote (contr : contr) = call(End_vote, contr)
+
+let execute (k, packed, contr : nat * bytes * contr) = call(Execute({ outcome_key = k; packed = packed; }), contr)
+
+let cancel (outcome_key_opt, contr : nat option * contr) = call(Cancel(outcome_key_opt), contr)
+
 (* Asserter helper for successful entry point calls *)
-let cancel_success (outcome_key_opt, contr : nat option * contr) =
-    Assert.tx_success (cancel(outcome_key_opt, contr))
+let submit_access_request_success (tezprofile, contr : DAO.Whitelist.tezprofile * contr) =
+    Assert.tx_success (submit_access_request(tezprofile, contr))
 
-let end_vote_success (contr : contr) =
-    Assert.tx_success (end_vote(contr))
-
-let execute_success (k, packed, contr : nat * bytes * contr) =
-    Assert.tx_success (execute(k, packed, contr))
-
-let lock_success (amount_, contr: nat * contr) =
-    Assert.tx_success (lock(amount_, contr))
+let accept_access_request_success (applicant, contr : address * contr) =
+    Assert.tx_success (accept_access_request(applicant, contr))
 
 let propose_success (proposal, contr : DAO.Proposal.make_params * contr) =
     Assert.tx_success (propose(proposal, contr))
+
+let lock_success (amount_, contr: nat * contr) =
+    Assert.tx_success (lock(amount_, contr))
 
 let release_success (amount_, contr: nat * contr) =
     Assert.tx_success (release(amount_, contr))
@@ -105,6 +108,14 @@ let release_success (amount_, contr: nat * contr) =
 let vote_success (choice, contr: DAO.Vote.choice * contr) =
     Assert.tx_success (vote(choice, contr))
 
+let end_vote_success (contr : contr) =
+    Assert.tx_success (end_vote(contr))
+
+let execute_success (k, packed, contr : nat * bytes * contr) =
+    Assert.tx_success (execute(k, packed, contr))
+
+let cancel_success (outcome_key_opt, contr : nat option * contr) =
+    Assert.tx_success (cancel(outcome_key_opt, contr))
 
 (* Batch call of lock entry point, WARNING: changes Test framework source *)
 let batch_lock (addr_lst, amount_, contr : address list * nat * contr) =

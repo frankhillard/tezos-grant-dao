@@ -23,6 +23,7 @@ let test_success_current_proposal =
     let config = { base_config with start_delay = 86400n } in
     let dao_storage = { base_storage with config = config } in
     let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
     let () = DAO_helper.cancel_success(empty_nat_option, dao.contr) in
@@ -41,7 +42,8 @@ let test_success_accepted_proposal =
         voting_period = 400n;
         timelock_delay = 3000n; } in
     let dao_storage = { base_storage with config = config } in
-    let (tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let lambda_ = Some(( DAO_helper.empty_op_list_hash, OperationList)) in
     let votes = [(0, 25n, true); (1, 25n, true); (2, 25n, true)] in
@@ -52,14 +54,16 @@ let test_success_accepted_proposal =
 
 (* Failing cancel because there is nothing to cancel *)
 let test_failure_nothing_to_cancel =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let r = DAO_helper.cancel(empty_nat_option, dao.contr) in
     Assert.string_failure r DAO.Errors.nothing_to_cancel
 
 (* Failing cancel because the outcome was not found *)
 let test_failure_outcome_not_found =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let r = DAO_helper.cancel(Some(23n), dao.contr) in
     Assert.string_failure r DAO.Errors.outcome_not_found
@@ -68,11 +72,17 @@ let test_failure_outcome_not_found =
 let test_failure_not_creator =
     let config = { base_config with start_delay = 1200n } in
     let dao_storage = { base_storage with config = config } in
-    let (tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
+
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
 
-    let sender_ = List_helper.nth_exn 2 tok.owners in
+    let user = List_helper.nth_exn 2 tok.owners in
+    let () = Test.set_source user in
+    let () = DAO_helper.submit_access_request_success("", dao.contr) in
     let () = Test.set_source sender_ in
+    let () = DAO_helper.accept_access_request_success(user, dao.contr) in
+    let () = Test.set_source user in
     let r = DAO_helper.cancel(empty_nat_option, dao.contr) in
     Assert.string_failure r DAO.Errors.not_creator
 
@@ -83,7 +93,8 @@ let test_failure_timelock_unlocked =
         voting_period = 400n;
         timelock_delay = 10n; } in
     let dao_storage = { base_storage with config = config } in
-    let (tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let lambda_ = Some(( DAO_helper.empty_op_list_hash, OperationList)) in
     let votes = [(0, 25n, true); (1, 25n, true); (2, 25n, true)] in
@@ -99,7 +110,8 @@ let test_failure_already_executed =
         voting_period = 400n;
         timelock_delay = 10n; } in
     let dao_storage = { base_storage with config = config } in
-    let (tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let lambda_ = Some(( DAO_helper.empty_op_list_hash, OperationList)) in
     let votes = [(0, 25_000_000n, true); (1, 25_000_000n, true); (2, 25_000_000n, true)] in

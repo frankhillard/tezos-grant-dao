@@ -18,6 +18,7 @@ let base_storage = DAO_helper.base_storage
 (* Successful lock *)
 let test_success =
     let (tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let amount_ = 3n in
     let r = DAO_helper.lock(amount_, dao.contr) in
@@ -35,6 +36,7 @@ let test_success_before_voting_starts =
     let config = { base_config with start_delay = 86400n } in
     let dao_storage = { base_storage with config = config } in
     let (tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
     let dao_storage = Test.get_storage dao.taddr in
 
     let amount_ = 3n in
@@ -50,7 +52,8 @@ let test_success_before_voting_starts =
 
 (* Failing lock because sender has insuffiscient balance *)
 let test_failure_ins_balance =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
     let r = DAO_helper.lock(300_000_000n, dao.contr) in
     Token_helper.assert_ins_balance_failure(r)
 
@@ -59,7 +62,8 @@ let test_failure_voting_period =
     (* Really short start_delay *)
     let config = { base_config with start_delay = 10n } in
     let dao_storage = { base_storage with config = config } in
-    let (_tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (_tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
     let r = DAO_helper.lock(3n, dao.contr) in

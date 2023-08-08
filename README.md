@@ -78,15 +78,3 @@ score type = {
 2. When there happen an `end_vote` : we iterate over the `map` of all the entries of those who voted and we add one point (`+1n`) reputation to the `reputation` score and we add the seconds between `last_updated_timestamp` and `now` to their `fidelity` score. We overwrite the `last_updated_timestamp` to `now`. {The vote is then casted with the updated weights}
 
 3. When a user `release`: we add the seconds between `last_updated_timestamp` and `now` to their `fidelity` score. We overwrite the `last_updated_timestamp` to `now`.
-
-
-## Next Steps
-- Enchancements :
-    - [ ] Had a minimum start_delay
-- D.I.D. Integration :
-    - Members of the D.A.O. should have a valid D.I.D. (maybe through [TzProfiles](https://tzprofiles.com/) ?)
-        - [ ] Add a Whitelist to the contract to validate users and their D.I.D.
-        - [ ] Non-members can request access to the D.A.O. by attaching their TzProfile as a parameter
-        - [ ] Members can validate the D.I.D. requests per user
-
-

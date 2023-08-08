@@ -1,3 +1,4 @@
+#import "./errors.mligo" "Errors"
 #import "./config.mligo" "Config"
 #import "./lambda.mligo" "Lambda"
 #import "./metadata.mligo" "Metadata"
@@ -7,6 +8,7 @@
 #import "./token.mligo" "Token"
 #import "./vault.mligo" "Vault"
 #import "./vote.mligo" "Vote"
+#import "./whitelist.mligo" "Whitelist"
 
 type outcomes = (nat, Outcome.t) big_map
 
@@ -16,14 +18,16 @@ type score = (address, scores) big_map
 type t =
     [@layout:comb]
     {
-        metadata: Metadata.t;
-        governance_token: Token.t;
-        user_score: score;
         config: Config.t;
-        vault: Vault.t;
-        proposal: Proposal.t option;
-        outcomes: outcomes;
+        governance_token: Token.t;
+        requests: Whitelist.requests;
+        members: Whitelist.members;
+        user_score: score;
         next_outcome_id: nat;
+        outcomes: outcomes;
+        proposal: Proposal.t option;
+        vault: Vault.t;
+        metadata: Metadata.t;
     }
 
 let update_config (f, s : Lambda.parameter_change * t) : t =

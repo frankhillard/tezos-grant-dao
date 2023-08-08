@@ -18,18 +18,42 @@ compile = $(LIGO) compile contract $(project_root) ./src/$(1) -o ./compiled/$(2)
 test = $(LIGO) run test $(project_root) ./test/$(1)
 # ^ run given test file
 
+all: clean install compile test
+	@F=./lambdas/empty_operation_list.mligo make compile-lambda
+	@F=./lambdas/operation_list.mligo make compile-lambda
+	@F=./lambdas/parameter_change.mligo make compile-lambda
+	@F=./lambdas/empty_operation_list.mligo make pack-lambda
+	@F=./lambdas/operation_list.mligo make pack-lambda
+	@F=./lambdas/parameter_change.mligo make pack-lambda
+
+install: ## install dependencies
+	@if [ ! -f ./.env ]; then cp .env.dist .env ; fi
+	@$(LIGO) install
+
+clean: ## clean up
+	@rm -rf compiled/*
+
 compile: ## compile contracts
 	@if [ ! -d ./compiled ]; then mkdir ./compiled ; fi
 	@echo "Compiling contracts..."
 	@$(call compile,main.mligo,dao.tz)
 	@$(call compile,main.mligo,dao.json,--michelson-format json)
 
-clean: ## clean up
-	@rm -rf compiled/*
-
-install: ## install dependencies
-	@if [ ! -f ./.env ]; then cp .env.dist .env ; fi
-	@$(LIGO) install
+.PHONY: test
+test: ## run tests (SUITE=propose make test)
+ifndef SUITE
+	@$(call test,whitelist.test.mligo)
+	@$(call test,propose.test.mligo)
+	@$(call test,lock.test.mligo)
+	@$(call test,release.test.mligo)
+	@$(call test,vote.test.mligo)
+	@$(call test,score.test.mligo)
+	@$(call test,end_vote.test.mligo)
+	@$(call test,cancel.test.mligo)
+	@$(call test,execute.test.mligo)
+else
+	@$(call test,$(SUITE).test.mligo)
+endif
 
 compile-lambda: ## compile a lambda (F=./lambdas/empty_operation_list.mligo make compile-lambda)
 # ^ helper to compile lambda from a file, used during development of lambdas
@@ -49,19 +73,4 @@ else
 	@$(LIGO) run interpret $(project_root) 'Bytes.pack(lambda_)' --init-file $(F)
 	@echo "Hash (sha256):"
 	@$(LIGO) run interpret $(project_root) 'Crypto.sha256(Bytes.pack(lambda_))' --init-file $(F)
-endif
-
-.PHONY: test
-test: ## run tests (SUITE=propose make test)
-ifndef SUITE
-	@$(call test,cancel.test.mligo)
-	@$(call test,end_vote.test.mligo)
-	@$(call test,execute.test.mligo)
-	@$(call test,lock.test.mligo)
-	@$(call test,propose.test.mligo)
-	@$(call test,release.test.mligo)
-	@$(call test,score.test.mligo)
-	@$(call test,vote.test.mligo)
-else
-	@$(call test,$(SUITE).test.mligo)
 endif

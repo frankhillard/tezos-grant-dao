@@ -17,6 +17,7 @@ let base_storage = DAO_helper.base_storage
 (* Successful release *)
 let test_success =
     let (tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.lock_success(3n, dao.contr) in
     let () = DAO_helper.release_success(3n, dao.contr) in
@@ -26,13 +27,17 @@ let test_success =
 
 (* Failing release because no locked tokens *)
 let test_failure_no_locked_tokens =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
+
     let r = DAO_helper.release(3n, dao.contr) in
     Assert.string_failure r DAO.Errors.no_locked_tokens
 
 (* Failing release because insuffiscient balance *)
 let test_failure_not_enough_balance =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
+
     let () = DAO_helper.lock_success(2n, dao.contr) in
     let r = DAO_helper.release(3n, dao.contr) in
     Assert.string_failure r DAO.Errors.not_enough_balance
@@ -42,7 +47,8 @@ let test_failure_voting_period =
     (* Really short start_delay *)
     let config = { base_config with start_delay = 10n } in
     let dao_storage = { base_storage with config = config } in
-    let (_tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (_tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.lock_success(3n, dao.contr) in
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in

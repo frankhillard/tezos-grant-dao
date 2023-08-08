@@ -25,6 +25,14 @@ let create_and_vote_proposal (
     (* impersonate token owners and call lock entry point *)
     let do_lock (nth_account, amount_, _ : int * nat * bool) =
         let () = Test.set_source (List_helper.nth_exn nth_account tok.owners) in
+        let () = if (List_helper.nth_exn nth_account tok.owners <> sender_)
+            then
+                let () = DAO_helper.submit_access_request_success("", dao.contr) in
+                let () = Test.set_source sender_ in
+                let () = DAO_helper.accept_access_request_success(List_helper.nth_exn nth_account tok.owners, dao.contr) in
+                Test.set_source (List_helper.nth_exn nth_account tok.owners)
+            else ()
+        in
         DAO_helper.lock_success(amount_, dao.contr)
     in
     let () = List.iter do_lock votes in

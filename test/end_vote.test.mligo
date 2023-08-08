@@ -22,7 +22,8 @@ let bootstrap () =
 
 (* Successful end_vote with proposal accepted *)
 let test_success_prop_accepted =
-    let (tok, dao, _sender_) = bootstrap() in
+    let (tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let lambda_ = Some(( DAO_helper.empty_op_list_hash, OperationList)) in
     let votes = [(0, 25_000_000n, true); (1, 25_000_000n, true); (2, 25_000_000n, true)] in
@@ -33,7 +34,8 @@ let test_success_prop_accepted =
 
 (* Successful end_vote with proposal rejected because refund_threshold was not reached *)
 let test_success_prop_rejected_quorum_not_reached =
-    let (tok, dao, _sender_) = bootstrap() in
+    let (tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let lambda_ = (None: DAO.Lambda.t option) in
     let votes = [(0, 1_000_000n, true); (1, 11_000_000n, false); (2, 6_000_000n, false)] in
@@ -44,7 +46,8 @@ let test_success_prop_rejected_quorum_not_reached =
 
 (* Successful end_vote with proposal rejected because super_majority was not reached *)
 let test_success_prop_rejected_super_maj_not_reached =
-    let (tok, dao, _sender_) = bootstrap() in
+    let (tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let lambda_ = (None: DAO.Lambda.t option) in
     let votes = [(0, 15n, true); (1, 15n, true); (2, 10n, false)] in
@@ -54,7 +57,8 @@ let test_success_prop_rejected_super_maj_not_reached =
 
 (* Failing end_vote because proposal voting period ongoing *)
 let test_failure_voting_period =
-    let (_tok, dao, _sender_) = bootstrap() in
+    let (_tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
 

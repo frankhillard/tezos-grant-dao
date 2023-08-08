@@ -14,6 +14,7 @@ let bootstrap () = Bootstrap.boot(init_tok_amount, DAO_helper.base_storage)
 (* Successful proposal creation *)
 let test_success =
     let (tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let r = DAO_helper.propose(DAO_helper.dummy_proposal, dao.contr) in
     let () = Assert.tx_success r in
@@ -36,7 +37,8 @@ let test_success =
 
 (* Failing proposal creation because there is already a proposal *)
 let test_failure_proposal_exists =
-    let (_tok, dao, _sender_) = bootstrap() in
+    let (_tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
     let r = DAO_helper.propose(DAO_helper.dummy_proposal, dao.contr) in
@@ -46,6 +48,7 @@ let test_failure_proposal_exists =
 (* Failing because the proposing account doesn't have sufiscient balance for the deposit amount *)
 let test_failure_insufiscient_balance =
     let (tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     (* Burn all the sender tokens *)
     let burn_addr = ("tz1ZZZZZZZZZZZZZZZZZZZZZZZZZZZZNkiRg": address) in

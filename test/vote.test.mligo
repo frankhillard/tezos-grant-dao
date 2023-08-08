@@ -18,6 +18,7 @@ let test_success =
     let config = { base_config with start_delay = 10n } in
     let dao_storage = { base_storage with config = config } in
     let (_tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let amount_ = 3n in
     let () = DAO_helper.lock_success(amount_, dao.contr) in
@@ -29,7 +30,8 @@ let test_success =
 
 (* Failing vote because no proposal *)
 let test_failure_no_proposal =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let choice = true in
     let r = DAO_helper.vote(choice, dao.contr) in
@@ -37,7 +39,8 @@ let test_failure_no_proposal =
 
 (* Failing vote because proposal is not in voting period *)
 let test_failure_not_voting_period =
-    let (_tok, dao, _sender_) = bootstrap(base_storage) in
+    let (_tok, dao, sender_) = bootstrap(base_storage) in
+    let () = Test.set_source sender_ in
 
     let amount_ = 3n in
     let () = DAO_helper.lock_success(amount_, dao.contr) in
@@ -52,7 +55,8 @@ let test_failure_no_locked_tokens =
     (* Really short start_delay *)
     let config = { base_config with start_delay = 10n } in
     let dao_storage = { base_storage with config = config } in
-    let (_tok, dao, _sender_) = bootstrap(dao_storage) in
+    let (_tok, dao, sender_) = bootstrap(dao_storage) in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.propose_success(DAO_helper.dummy_proposal, dao.contr) in
 

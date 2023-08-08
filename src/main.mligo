@@ -8,9 +8,12 @@
 #import "./vote.mligo" "Vote"
 #import "./outcome.mligo" "Outcome"
 #import "./lambda.mligo" "Lambda"
+#import "./whitelist.mligo" "Whitelist"
 
 type parameter =
-    Propose of Proposal.make_params
+    SubmitAccessRequest of Whitelist.tezprofile
+    | AcceptAccessRequest of address
+    | Propose of Proposal.make_params
     | Lock of Vault.amount_
     | Release of Vault.amount_
     | Vote of Vote.choice
@@ -22,6 +25,42 @@ type storage = Storage.t
 type result = operation list * storage
 
 (**
+    [_check_is_member(seek_address, s)] checks if the user is a member in the map of members
+    Raises [Errors.not_a_member] if the user is not in the map of members
+*)
+let _check_is_member(seek_address, s : address * storage) =
+    match Map.find_opt seek_address s.members with
+        | None -> failwith Errors.not_a_member
+        | Some (_) -> ()
+
+(**
+    [submit_request(b, s)] creates a request for access in the map of requests
+    Raises [Errors.request_already_exists] if the sender already has a request
+*)
+let submit_access_request(tezprofile, s : Whitelist.tezprofile * storage) : result =
+    match Map.find_opt (Tezos.get_sender()) s.members with
+        | Some (_) -> failwith Errors.already_a_member
+        | None -> (match Map.find_opt (Tezos.get_sender()) s.requests with
+                    | Some (_) -> failwith Errors.request_already_exists
+                    | None ->
+                        let new_requests = Map.add (Tezos.get_sender()) tezprofile s.requests in
+                        ([], { s with requests = new_requests}))
+
+(**
+    [accept_request(c, s)] accepts a request for an access in the map of requests,
+    and creates a membership in the map of members
+    Raises [Errors.request_does_not_exist] if the applicant does not have a request
+*)
+let accept_access_request(applicant, s : address * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
+    match Map.find_opt applicant s.requests with
+        | None -> failwith Errors.request_does_not_exist
+        | Some applicant_tezprofile ->
+            let new_requests = Map.remove applicant s.requests in
+            let new_members = Map.add applicant applicant_tezprofile s.members in
+            ([], {s with requests = new_requests; members = new_members})
+
+(**
     [propose(p, s)] creates a proposal from create parameters [p], then transfers configured
     deposit_amount of tokens to the DAO contract and updates storage [s] with the new proposal.
     Raises [Errors.proposal_already_exists] if there is already a proposal as only one
@@ -29,6 +68,7 @@ type result = operation list * storage
     Raises [Errors.receiver_not_found] if the governance token contract entrypoint is not found.
 *)
 let propose (p, s : Proposal.make_params * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     match s.proposal with
         Some(_) -> failwith Errors.proposal_already_exists
         | None -> [Token.transfer(
@@ -48,6 +88,7 @@ let propose (p, s : Proposal.make_params * storage) : result =
     Requires the DAO address to have been added as operator on the governance token.
 *)
 let lock (amount_, s : nat * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     let () = Proposal._check_no_vote_ongoing(s.proposal) in
     let current_amount = Vault.get_for_user(s.vault, Tezos.get_sender()) in
 
@@ -78,6 +119,7 @@ let lock (amount_, s : nat * storage) : result =
     Raises [FA2.Errors.ins_balance] if the DAO has insufiscient balance.
 *)
 let release (amount_, s : nat * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     let () = Proposal._check_no_vote_ongoing(s.proposal) in
     let current_amount = Vault.get_for_user_exn(s.vault, Tezos.get_sender()) in
     let _check_balance = assert_with_error
@@ -110,6 +152,7 @@ let release (amount_, s : nat * storage) : result =
     Raises [Errors.no_locked_tokens] if the sender has no locked tokens.
 *)
 let vote (choice, s : bool * storage) : storage =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     match s.proposal with
         None -> failwith Errors.no_proposal
         | Some(p) -> let () = Proposal._check_is_voting_period(p) in
@@ -138,6 +181,7 @@ let update_score_end_vote (addr, usr_score : address * Storage.score) : Storage.
     could not be found.
 *)
 let end_vote (s : storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     match s.proposal with
         None -> failwith Errors.no_proposal
         | Some(p) -> let () = Proposal._check_voting_period_ended(p) in
@@ -190,6 +234,7 @@ let end_vote (s : storage) : result =
     canceled if it is unlocked.
 *)
 let cancel (outcome_key_opt, s : nat option * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
    [Token.transfer(
         s.governance_token,
         Tezos.get_self_address(),
@@ -228,6 +273,7 @@ let cancel (outcome_key_opt, s : nat option * storage) : result =
     Raises [Errors.wrong_lambda_kind] if the unpacking of the lambda fails.
 *)
 let execute (outcome_key, packed, s: nat * bytes * storage) : result =
+    let () = _check_is_member((Tezos.get_sender()), s) in
     let proposal = (match Big_map.find_opt outcome_key s.outcomes with
         None -> failwith Errors.outcome_not_found
         | Some(o) -> Outcome.get_proposal(o)) in
@@ -255,7 +301,9 @@ let execute (outcome_key, packed, s: nat * bytes * storage) : result =
 let main (action, store : parameter * storage) : result =
     let _check_amount_is_zero = assert_with_error (Tezos.get_amount() = 0tez) Errors.not_zero_amount in
     match action with
-        Propose p -> propose(p, store)
+        SubmitAccessRequest b -> submit_access_request(b, store)
+        | AcceptAccessRequest c -> accept_access_request(c, store)
+        | Propose p -> propose(p, store)
         | Cancel n_opt -> cancel(n_opt, store)
         | Lock n -> lock(n, store)
         | Release n -> release(n, store)

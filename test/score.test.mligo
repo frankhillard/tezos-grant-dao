@@ -38,10 +38,11 @@ let test_update_score =
 (* Successful update the fidelity with an unlock *)
 let test_update_rep =
     let (_tok, dao, sender_) = bootstrap() in
+    let () = Test.set_source sender_ in
 
     let () = DAO_helper.lock_success(3n, dao.contr) in
     let () = DAO_helper.release_success(3n, dao.contr) in
-    
+
     let dao_storage = Test.get_storage dao.taddr in
     let sender_score = Option.unopt(Big_map.find_opt sender_ dao_storage.user_score) in
     let () = assert (sender_score.reputation = 0n) in
