@@ -58,7 +58,7 @@ You can get a LIGO binary for `v0.70.1` [here](https://gitlab.com/ligolang/ligo/
 
 The D.A.O. uses an anti-whale voting system, working as follows :
 - Each user has a token score. For each vote, the base token score is initialised in the configuration at `s = 1 000 000` for smoothing purpose, and this value is added to the user locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
-- Each user has a reputation score. The base reputation score is initialised in the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, each user is rewarded one cumulative reputation point in a counter `y`, resulting in a final reputation score `Y = b + y`.
+- Each user has a reputation score. The base reputation score is initialised in the configuration at `b = 10` for smoothing purpose.  At each successful vote, each user is rewarded one cumulative reputation point in a counter `y`, resulting in a final reputation score `Y = b + y`.
 - Each user has a fidelity score. The base fidelity score is initialised in the configuration at `t = 31 536 000` for smoothing purpose. At each lock, we note the timestamp, and calculate at each vote the total lock time `z` in seconds. Note that locking and releasing multiple times cumulate your lock time.  resulting in a final fidelity score `Z = t + z`.
 
 The final voting weight power `V` for each user is `V = X * Y * Z`

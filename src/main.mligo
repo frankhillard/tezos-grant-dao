@@ -11,7 +11,7 @@
 #import "./whitelist.mligo" "Whitelist"
 
 type parameter =
-    SubmitAccessRequest of Whitelist.tezprofile
+    SubmitAccessRequest of Whitelist.tzprofile
     | AcceptAccessRequest of address
     | Propose of Proposal.make_params
     | Lock of Vault.amount_
@@ -37,13 +37,13 @@ let _check_is_member(seek_address, s : address * storage) =
     [submit_request(b, s)] creates a request for access in the map of requests
     Raises [Errors.request_already_exists] if the sender already has a request
 *)
-let submit_access_request(tezprofile, s : Whitelist.tezprofile * storage) : result =
+let submit_access_request(tzprofile, s : Whitelist.tzprofile * storage) : result =
     match Map.find_opt (Tezos.get_sender()) s.members with
         | Some (_) -> failwith Errors.already_a_member
         | None -> (match Map.find_opt (Tezos.get_sender()) s.requests with
                     | Some (_) -> failwith Errors.request_already_exists
                     | None ->
-                        let new_requests = Map.add (Tezos.get_sender()) tezprofile s.requests in
+                        let new_requests = Map.add (Tezos.get_sender()) tzprofile s.requests in
                         ([], { s with requests = new_requests}))
 
 (**
@@ -55,9 +55,9 @@ let accept_access_request(applicant, s : address * storage) : result =
     let () = _check_is_member((Tezos.get_sender()), s) in
     match Map.find_opt applicant s.requests with
         | None -> failwith Errors.request_does_not_exist
-        | Some applicant_tezprofile ->
+        | Some applicant_tzprofile ->
             let new_requests = Map.remove applicant s.requests in
-            let new_members = Map.add applicant applicant_tezprofile s.members in
+            let new_members = Map.add applicant applicant_tzprofile s.members in
             ([], {s with requests = new_requests; members = new_members})
 
 (**
@@ -84,7 +84,7 @@ let propose (p, s : Proposal.make_params * storage) : result =
     [lock(amount_)] creates an operation for token transfer between the owner and the DAO contract with [amount_],
     and updates storage [s] with the vault new balance to keep tracks of the transfer.
     Raises [Errors.voting_period] if a proposal exists and a vote is ongoing.
-    Raises [FA2.Errors.ins_balance] if the owner has insufiscient balance.
+    Raises [FA2.Errors.ins_balance] if the owner has insufficient balance.
     Requires the DAO address to have been added as operator on the governance token.
 *)
 let lock (amount_, s : nat * storage) : result =
@@ -116,7 +116,7 @@ let lock (amount_, s : nat * storage) : result =
     Raises [Errors.voting_period] if a vote is ongoing.
     Raises [Errors.no_locked_tokens] if the sender has no locked tokens.
     Raises [Errors.not_enough_balance] if [amount_] is superior to actual balance.
-    Raises [FA2.Errors.ins_balance] if the DAO has insufiscient balance.
+    Raises [FA2.Errors.ins_balance] if the DAO has insufficient balance.
 *)
 let release (amount_, s : nat * storage) : result =
     let () = _check_is_member((Tezos.get_sender()), s) in

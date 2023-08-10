@@ -51,11 +51,11 @@ let test_success_before_voting_starts =
     )
 
 (* Failing lock because sender has insuffiscient balance *)
-let test_failure_ins_balance =
+let test_failure_insufficient_balance =
     let (_tok, dao, sender_) = bootstrap(base_storage) in
     let () = Test.set_source sender_ in
     let r = DAO_helper.lock(300_000_000n, dao.contr) in
-    Token_helper.assert_ins_balance_failure(r)
+    Token_helper.assert_insufficient_balance_failure(r)
 
 (* Failing lock because voting is underway *)
 let test_failure_voting_period =
