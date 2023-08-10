@@ -1,4 +1,4 @@
-# Specification
+# Contract Specification
 
 ## Entrypoints
 
@@ -8,10 +8,57 @@
 
 ![workflow](./images/workflow.png)
 
-The contract is using locked tokens of the configured
-***governance_token*** as voting power.  
+The contract is using locked tokens of the configured ***governance_token*** 
+as voting power, along with additional whitelist & anti-whale measures.
+
 The potential incentives to lock tokens (outside of getting voting power) is
 uncovered.
+
+## D.I.D. Whitelist
+
+The D.A.O. uses a whitelist system to invite members to the ecosystem.
+An initial map of `members` must be specified at the origination of the contract.
+
+An external user of the D.A.O. must then :
+- submit an access request by calling the entrypoint `SubmitAccessRequest`
+- wait for an already existing member to accept their request, 
+    by them calling the entrypoint`AcceptAccessRequest`
+
+Each request and each member have a `string` value attached to their address.
+This allows for user to attach either their [Tezprofile](https://tzprofiles.com/) address, 
+or the URL pointing to a post on their social profile, or a Gist that states 
+they are the rightful owners of the specified address.
+
+![access_request](./images/flow_access_request.png)
+
+> [!NOTE]
+> Unfortunately, the [Tezprofile](https://tzprofiles.com/) project does not offer 
+> any on-chain registry allowing the D.A.O. to have a truly deventralized checking process.
+> Since there are no on-chian view or callbacks that can be used to check 
+> the applicants profiles, we decided to leave the `tezprofile` field as 
+> a generic `string` to allow applicants to attach other means to justify 
+> their identities.
+
+## Anti-Whale System
+
+The D.A.O. uses an anti-whale voting system, working as follows :
+
+- Each user has a token score. For each vote, the base token score is initialised 
+in the configuration at `s = 1 000 000`, and this value is added to the user 
+locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
+
+- Each user has a reputation score. The base reputation score is initialised in 
+the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, 
+each user is rewarded one cumulative reputation point in a counter `y`, 
+resulting in a final reputation score `Y = b + y`.
+
+- Each user has a fidelity score. The base fidelity score is initialised in 
+the configuration at `t = 31 536 000` for smoothing purpose. At each lock, 
+we note the timestamp, and calculate at each vote the total lock 
+time `z` in seconds. Note that locking and releasing multiple times cumulate 
+your lock time.  resulting in a final fidelity score `Z = t + z`.
+
+![voting_weight](./images/voting_weight.png)
 
 ### Propose
 
@@ -48,14 +95,6 @@ during a configured ***voting_period***. Token owners can vote on the proposal,
 having their locked tokens being counted as voting power.
 
 ![vote](./images/flow_vote.png)
-
-## Anti-Whale System
-The D.A.O. uses an anti-whale voting system, working as follows :
-- Each user has a token score. For each vote, the base token score is initialised in the configuration at `s = 1 000 000`, and this value is added to the user locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
-- Each user has a reputation score. The base reputation score is initialised in the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, each user is rewarded one cumulative reputation point in a counter `y`, resulting in a final reputation score `Y = b + y`.
-- Each user has a fidelity score. The base fidelity score is initialised in the configuration at `t = 31 536 000` for smoothing purpose. At each lock, we note the timestamp, and calculate at each vote the total lock time `z` in seconds. Note that locking and releasing multiple times cumulate your lock time.  resulting in a final fidelity score `Z = t + z`.
-
-![voting_weight](./images/voting_weight.png)
 
 ### End_vote
 
