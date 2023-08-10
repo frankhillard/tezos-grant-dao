@@ -55,7 +55,7 @@ let add_operators (operators, contr : SingleAsset.operator list * SingleAsset.pa
     Assert.tx_success r
 
 (* assert for FA2 insuffiscient balance string failure *)
-let assert_ins_balance_failure (r : test_exec_result) =
+let assert_insufficient_balance_failure (r : test_exec_result) =
     Assert.string_failure r SingleAsset.Errors.ins_balance
 
 (* assert FA2 contract at [taddr] have [owner] address with [amount_] tokens in its ledger *)

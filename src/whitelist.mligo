@@ -1,8 +1,8 @@
 #import "./errors.mligo" "Errors"
 
-type tezprofile = string
-type requests = (address, tezprofile) map
-type members = (address, tezprofile) map
+type tzprofile = string
+type requests = (address, tzprofile) map
+type members = (address, tzprofile) map
 
 // (**
 //     [is_member(p, s)] is an on-chain view to see if a user is a member

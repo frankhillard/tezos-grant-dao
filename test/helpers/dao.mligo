@@ -71,7 +71,7 @@ let call (p, contr : DAO.parameter * contr) =
     Test.transfer_to_contract contr p 0mutez
 
 (* Entry points call helpers *)
-let submit_access_request (tezprofile, contr : DAO.Whitelist.tezprofile * contr) = call(SubmitAccessRequest(tezprofile), contr)
+let submit_access_request (tzprofile, contr : DAO.Whitelist.tzprofile * contr) = call(SubmitAccessRequest(tzprofile), contr)
 
 let accept_access_request (applicant, contr : address * contr) = call(AcceptAccessRequest(applicant), contr)
 
@@ -90,8 +90,8 @@ let execute (k, packed, contr : nat * bytes * contr) = call(Execute({ outcome_ke
 let cancel (outcome_key_opt, contr : nat option * contr) = call(Cancel(outcome_key_opt), contr)
 
 (* Asserter helper for successful entry point calls *)
-let submit_access_request_success (tezprofile, contr : DAO.Whitelist.tezprofile * contr) =
-    Assert.tx_success (submit_access_request(tezprofile, contr))
+let submit_access_request_success (tzprofile, contr : DAO.Whitelist.tzprofile * contr) =
+    Assert.tx_success (submit_access_request(tzprofile, contr))
 
 let accept_access_request_success (applicant, contr : address * contr) =
     Assert.tx_success (accept_access_request(applicant, contr))

@@ -16,26 +16,26 @@ uncovered.
 
 ## D.I.D. Whitelist
 
-The D.A.O. uses a whitelist system to invite members to the ecosystem.
+The D.A.O. uses a whitelist system to invite members to the dApp.
 An initial map of `members` must be specified at the origination of the contract.
 
 An external user of the D.A.O. must then :
 - submit an access request by calling the entrypoint `SubmitAccessRequest`
 - wait for an already existing member to accept their request, 
-    by them calling the entrypoint`AcceptAccessRequest`
+    by calling the entrypoint`AcceptAccessRequest`
 
 Each request and each member have a `string` value attached to their address.
-This allows for user to attach either their [Tezprofile](https://tzprofiles.com/) address, 
+This allows for user to attach either their [Tzprofile](https://tzprofiles.com/) address, 
 or the URL pointing to a post on their social profile, or a Gist that states 
 they are the rightful owners of the specified address.
 
 ![access_request](./images/flow_access_request.png)
 
 > [!NOTE]
-> Unfortunately, the [Tezprofile](https://tzprofiles.com/) project does not offer 
-> any on-chain registry allowing the D.A.O. to have a truly deventralized checking process.
-> Since there are no on-chian view or callbacks that can be used to check 
-> the applicants profiles, we decided to leave the `tezprofile` field as 
+> Unfortunately, the [Tzprofile](https://tzprofiles.com/) project does not offer 
+> any on-chain registry allowing the D.A.O. to have a truly decentralized checking process.
+> Since there are no on-chain view or callbacks that can be used to check 
+> the applicants' profiles, we decided to leave the `tzprofile` field as 
 > a generic `string` to allow applicants to attach other means to justify 
 > their identities.
 
@@ -48,7 +48,7 @@ in the configuration at `s = 1 000 000`, and this value is added to the user
 locked tokens for this vote `x`, resulting in a final token score `X = s + x`.
 
 - Each user has a reputation score. The base reputation score is initialised in 
-the configuration at `b = 10` for smoothing purpose.  At each succesfull vote, 
+the configuration at `b = 10` for smoothing purpose.  At each successful vote, 
 each user is rewarded one cumulative reputation point in a counter `y`, 
 resulting in a final reputation score `Y = b + y`.
 

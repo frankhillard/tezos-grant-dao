@@ -46,7 +46,7 @@ let test_failure_proposal_exists =
     Assert.string_failure r DAO.Errors.proposal_already_exists
 
 (* Failing because the proposing account doesn't have sufiscient balance for the deposit amount *)
-let test_failure_insufiscient_balance =
+let test_failure_insufficient_balance =
     let (tok, dao, sender_) = bootstrap() in
     let () = Test.set_source sender_ in
 
@@ -55,4 +55,4 @@ let test_failure_insufiscient_balance =
     let _r = Token_helper.transfer(tok.contr, sender_, burn_addr, init_tok_amount) in
     let r = DAO_helper.propose(DAO_helper.dummy_proposal, dao.contr) in
 
-    Token_helper.assert_ins_balance_failure(r)
+    Token_helper.assert_insufficient_balance_failure(r)
