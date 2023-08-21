@@ -39,8 +39,8 @@ let update_vault (v, s : Vault.t * t) : t =
 let create_proposal (p, s : Proposal.t * t) : t =
     { s with proposal = Some(p) }
 
-let update_votes (p, v, s : Proposal.t * Vote.t * t) : t =
-    let new_votes = Map.update (Tezos.get_sender()) (Some(v)) p.votes in
+let update_votes (addr, p, v, s : address * Proposal.t * Vote.t * t) : t =
+    let new_votes = Map.update addr (Some(v)) p.votes in
     let new_proposal = { p with votes = new_votes } in
     { s with proposal = Some(new_proposal) }
 
